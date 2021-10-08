@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:todoapp/database_helper.dart';
+import 'package:todoapp/models/task.dart';
 import 'package:todoapp/screens/taskpage.dart';
 import 'package:todoapp/widgets.dart';
 
@@ -36,20 +37,31 @@ class _HomePageState extends State<HomePage> {
                 ),
                 Expanded(
                   child: FutureBuilder(
-                    future: _dbHelper.getTasks(),
-                    builder: (context, snapshot) {
-                      if (snapshot.hasData) {
+                      future: _dbHelper.getTasks(),
+                      builder: (context, AsyncSnapshot<List<Task>> snapshot) {
                         return ListView.builder(
-                            itemCount: snapshot.data.length,
-                            itemBuilder: (context, index) {
-                              return TaskCardWidget(
-                                  title: snapshot.data[index].title);
-                            });
-                      } else {
-                        return Container();
-                      }
-                    },
-                  ),
+                          itemCount: snapshot.data?.length,
+                          itemBuilder: (context, index) {
+                            return GestureDetector(
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => TaskPage(
+                                      task: snapshot.data?[index],
+                                    ),
+                                  ),
+                                );
+                              },
+                              child: TaskCardWidget(
+                                title: snapshot.data?[index].title,
+                                desc: snapshot.data?[index].description,
+                              ),
+                            );
+                          },
+                          physics: BouncingScrollPhysics(),
+                        );
+                      }),
                 ),
               ],
             ),
@@ -60,7 +72,10 @@ class _HomePageState extends State<HomePage> {
                 onTap: () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context) => TaskPage()),
+                    MaterialPageRoute(
+                        builder: (context) => TaskPage(
+                              task: null,
+                            )),
                   ).then((value) {
                     setState(() {});
                   });
