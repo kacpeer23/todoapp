@@ -51,6 +51,10 @@ class _HomePageState extends State<HomePage> {
                                       task: snapshot.data?[index],
                                     ),
                                   ),
+                                ).then(
+                                  (value) {
+                                    setState(() {});
+                                  },
                                 );
                               },
                               child: TaskCardWidget(

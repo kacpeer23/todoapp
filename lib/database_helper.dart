@@ -12,16 +12,33 @@ class DatabaseHelper {
         await db.execute(
             'CREATE TABLE tasks(id INTEGER PRIMARY KEY, title TEXT, description TEXT)');
         await db.execute(
-            'CREATE TABLE todo(id INTEGER PRIMARY KEY, title TEXT, isDone INTEGER)');
+            'CREATE TABLE todo(id INTEGER PRIMARY KEY, taskID INTEGER, title TEXT, isDone INTEGER)');
       },
       version: 1,
     );
   }
 
-  Future<void> insertTask(Task task) async {
+  Future<int?> insertTask(Task task) async {
+    int taskID = 0;
     Database _db = await database();
-    await _db.insert('tasks', task.toMap(),
-        conflictAlgorithm: ConflictAlgorithm.replace);
+    await _db
+        .insert('tasks', task.toMap(),
+            conflictAlgorithm: ConflictAlgorithm.replace)
+        .then((value) {
+      taskID = value;
+    });
+    return taskID;
+  }
+
+  Future<void> updateTaskTitle(int id, String title) async {
+    Database _db = await database();
+    await _db.rawUpdate("UPDATE tasks SET title = '$title' WHERE id = '$id'");
+  }
+
+  Future<void> updateTaskDescription(int id, String description) async {
+    Database _db = await database();
+    await _db.rawUpdate(
+        "UPDATE tasks SET description = '$description' WHERE id = '$id'");
   }
 
   Future<void> insertTodo(Todo todo) async {
@@ -44,7 +61,7 @@ class DatabaseHelper {
   Future<List<Todo>> getTodo(int taskID) async {
     Database _db = await database();
     List<Map<String, dynamic>> todoMap =
-        await _db.rawQuery('SELECT * FROM todo WHERE taskID = $taskID');
+        await _db.rawQuery('SELECT * FROM todo WHERE id = $taskID');
     return List.generate(todoMap.length, (index) {
       return Todo(
         id: todoMap[index]['id'],
@@ -53,5 +70,17 @@ class DatabaseHelper {
         isDone: todoMap[index]['isDone'],
       );
     });
+  }
+
+  Future<void> updateTodoDone(int id, int isDone) async {
+    Database _db = await database();
+    await _db
+        .rawUpdate("UPDATE tasks SET description = '$isDone' WHERE id = '$id'");
+  }
+
+  Future<void> deleteTask(int id) async {
+    Database _db = await database();
+    await _db.rawDelete("DELETE FROM tasks WHERE id = '$id'");
+    await _db.rawDelete("DELETE FROM todo WHERE taskID = '$id'");
   }
 }
